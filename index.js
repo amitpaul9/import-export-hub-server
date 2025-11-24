@@ -24,22 +24,24 @@ async function run (){
  await client.connect();
 
 const exportDB = client.db('Products');
-const userCollections = exportDB.collection('exports');
-const ProductsCollection = exportDB.collection('products')
+const ProductsCollection = exportDB.collection('products');
+const importCollection = exportDB.collection('imports');
 
 // routes start
 
+// get exports data 
 app.get("/exports", async (req, res)=>{
-  const cursor = userCollections.find();
+  const cursor = ProductsCollection.find();
   const result = await cursor.toArray();
   res.send(result);
 })
 
+// post exports data 
 app.post('/exports', async (req, res)=>{
   try{
     const newUser = req.body;
   console.log('user info', newUser);
-  const result = await userCollections.insertOne(newUser);
+  const result = await ProductsCollection.insertOne(newUser);
   res.send(result);
   }
   catch(error){
@@ -51,12 +53,21 @@ app.post('/exports', async (req, res)=>{
 
 
 // products routes 
-app.get('/products', async(req, res)=>{
-  const cursor  = ProductsCollection.find().sort({created_at: -1}).limit(6);
+// get recent product data 
+app.get('/products/recent', async(req, res)=>{
+  const cursor  = ProductsCollection.find().sort({createdDate: -1}).limit(6);
   const result = await cursor.toArray();
   res.send(result)
 })
 
+//get all products data
+app.get('/products', async(req, res)=>{
+  const cursor  = ProductsCollection.find()
+  const result = await cursor.toArray();
+  res.send(result)
+})
+
+// post product data 
 app.post('/products', async(req, res)=>{
   try{
     const newProduct = req.body;
@@ -67,6 +78,20 @@ app.post('/products', async(req, res)=>{
     res.send(500).send({error: "faild to insert product"})
   }
 })
+
+// product data by id 
+
+app.get('/products/:id', async(req, res)=>{
+  const id = req.params.id;
+  const result = await ProductsCollection.findOne({_id: new ObjectId(id)});
+  res.send(result)
+})
+
+
+
+
+
+// import routes 
 
 
 

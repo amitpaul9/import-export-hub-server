@@ -94,8 +94,22 @@ app.get('/products/:id', async(req, res)=>{
 app.post('/users', async(req, res)=>{
 try{
 const newUser = req.body;
-const result = await userCollection.insertOne(newUser);
+
+
+
+const email = req.body.email;
+const query = {email: email};
+const exitstingUser = await userCollection.findOne(query);
+if(exitstingUser){
+res.send('user already exits')
+}
+else{
+const result =  userCollection.insertOne(newUser);
 res.send(result)
+}
+
+
+
 }
 catch(error){
   console.log(error)

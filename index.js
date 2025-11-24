@@ -26,6 +26,7 @@ async function run (){
 const exportDB = client.db('Products');
 const ProductsCollection = exportDB.collection('products');
 const importCollection = exportDB.collection('imports');
+const userCollection = exportDB.collection('users')
 
 // routes start
 
@@ -88,6 +89,25 @@ app.get('/products/:id', async(req, res)=>{
 })
 
 
+//user routes
+// post user 
+app.post('/users', async(req, res)=>{
+try{
+const newUser = req.body;
+const result = await userCollection.insertOne(newUser);
+res.send(result)
+}
+catch(error){
+  console.log(error)
+}
+})
+
+//get user data
+app.get('/users', async(req, res)=>{
+  const cursor = userCollection.find();
+  const result = await cursor.toArray();
+  res.send(result)
+})
 
 
 

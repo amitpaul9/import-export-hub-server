@@ -30,12 +30,49 @@ const userCollection = exportDB.collection('users')
 
 // routes start
 
-// get exports data 
-app.get("/exports", async (req, res)=>{
-  const cursor = ProductsCollection.find();
+// get exports data by email
+app.get('/exports', async(req, res)=>{
+  const query = {};
+  const email = req.query.exporter_email;
+  if(email){
+    query.exporter_email = email;
+    console.log('getting email', email)
+  }
+  const cursor = ProductsCollection.find(query);
   const result = await cursor.toArray();
   res.send(result);
 })
+
+//delete my exports
+app.delete("/exports/:id", async(req, res)=>{
+  const id = req.params.id;
+  const query = {_id: new ObjectId(id)};
+  const result = await ProductsCollection.deleteOne(query);
+  res.send(result)
+})
+
+
+//update my exports
+app.patch("/exports/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updatedProduct = req.body;
+    
+    const query = { _id: new ObjectId(id) };
+    const updatedExports = {
+      $set: updatedProduct
+    };
+    const result = await ProductsCollection.updateOne(query, updatedExports);
+ 
+    res.send(result);
+    
+  } catch(error) {
+    console.error('Update error:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+
 
 // post exports data 
 app.post('/exports', async (req, res)=>{
@@ -51,6 +88,7 @@ app.post('/exports', async (req, res)=>{
   }
 
 })
+
 
 
 // products routes 
@@ -126,6 +164,61 @@ app.get('/users', async(req, res)=>{
 
 
 // import routes 
+// post import data
+app.post('/imports', (req, res)=>{
+  try{
+  const newImport = req.body;
+  const result = importCollection.insertOne(newImport);
+  res.send(result);
+  }
+  catch(error){
+    console.log('got and error saving import', error)
+  }
+
+})
+
+//get my imports
+
+app.get('/imports', async(req, res)=>{
+  const query = {};
+  const email = req.query.email
+  if(email){
+    query.email = email;
+    console.log('getting email', email)
+  }
+  const cursor = importCollection.find(query);
+  const result = await cursor.toArray();
+  res.send(result);
+})
+
+app.delete("/imports/:id", async(req, res)=>{
+  const id = req.params.id;
+  const query = {_id: new ObjectId(id)};
+  const result = await importCollection.deleteOne(query);
+  res.send(result)
+})
+
+
+app.post('/imports', async (req, res) => {
+  try {
+    const newImport = req.body;
+    
+    const result = await importCollection.insertOne(newImport);
+    
+    await ProductsCollection.updateOne(
+      { _id: new ObjectId(newImport.product_id) },
+      { $inc: { availableQuantity: -parseInt(newImport.import_quantity) } }
+    );
+    
+    res.send(result);
+    
+  } catch(error) {
+    console.log(error);
+  }
+});
+
+
+
 
 
 

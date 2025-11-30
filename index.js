@@ -73,7 +73,6 @@ app.patch("/exports/:id", async (req, res) => {
 });
 
 
-
 // post exports data 
 app.post('/exports', async (req, res)=>{
   try{
@@ -199,23 +198,7 @@ app.delete("/imports/:id", async(req, res)=>{
 })
 
 
-app.post('/imports', async (req, res) => {
-  try {
-    const newImport = req.body;
-    
-    const result = await importCollection.insertOne(newImport);
-    
-    await ProductsCollection.updateOne(
-      { _id: new ObjectId(newImport.product_id) },
-      { $inc: { availableQuantity: -parseInt(newImport.import_quantity) } }
-    );
-    
-    res.send(result);
-    
-  } catch(error) {
-    console.log(error);
-  }
-});
+
 
 
 

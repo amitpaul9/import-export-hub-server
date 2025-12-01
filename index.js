@@ -163,17 +163,28 @@ app.get('/users', async(req, res)=>{
 
 
 // import routes 
+
 // post import data
-app.post('/imports', (req, res)=>{
+app.post('/imports', async(req, res)=>{
   try{
-  const newImport = req.body;
-  const result = importCollection.insertOne(newImport);
-  res.send(result);
+    const newImport = req.body;
+    const result = await importCollection.insertOne(newImport); 
+    console.log(newImport)
+    
+    const filter = {_id: new ObjectId(newImport.product_id)};
+    const update = {
+      $inc:{
+        availableQuantity: -parseInt(newImport.import_quantity) 
+      }
+    }
+    const importCount = await ProductsCollection.updateOne(filter, update);
+
+    res.send({result, importCount}); 
   }
   catch(error){
-    console.log('got and error saving import', error)
+    console.log('got an error saving import', error);
+    res.status(500).send({error: 'Failed to process import'});
   }
-
 })
 
 //get my imports
